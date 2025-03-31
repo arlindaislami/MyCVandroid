@@ -1,21 +1,16 @@
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.navigation.NavController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.navigation.NavController
+import androidx.navigation.compose.*
 
 @Composable
 fun Home(navController: NavController) {
     val tabNavController = rememberNavController()
-
     Scaffold(
         topBar = { TopAppBar(navController) },
         bottomBar = { BottomNavigationBar(tabNavController) }
@@ -40,7 +35,7 @@ fun TopAppBar(navController: NavController) {
         actions = {
             IconButton(onClick = {
                 navController.navigate("login") {
-                    popUpTo("home") { inclusive = true }  // 🔥 Kthen direkt te login dhe fshin historinë
+                    popUpTo("home") { inclusive = true }
                 }
             }) {
                 Icon(Icons.Filled.Logout, contentDescription = "Logout")
@@ -48,26 +43,37 @@ fun TopAppBar(navController: NavController) {
         }
     )
 }
+
 @Composable
 fun BottomNavigationBar(navController: NavController) {
-    NavigationBar {
-        NavigationBarItem(
-            selected = false,
-            onClick = { navController.navigate("myfiles") },
-            icon = { Icon(Icons.Filled.Folder, contentDescription = "My Files") },
-            label = { Text("My Files") }
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = { navController.navigate("newfile") },
-            icon = { Icon(Icons.Filled.Add, contentDescription = "New File") },
-            label = { Text("New File") }
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = { navController.navigate("profile") },
-            icon = { Icon(Icons.Filled.AccountCircle, contentDescription = "Profile") },
-            label = { Text("Profile") }
-        )
+    val items = listOf(
+        BottomNavItem("myfiles", "My Files", Icons.Filled.Folder),
+        BottomNavItem("newfile", "New File", Icons.Filled.Add),
+        BottomNavItem("profile", "Profile", Icons.Filled.AccountCircle)
+    )
+    val currentRoute = currentRoute(navController)
+    NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceVariant) {
+        items.forEach { item ->
+            NavigationBarItem(
+                selected = currentRoute == item.route,
+                onClick = { navController.navigate(item.route) },
+                icon = {
+                    Icon(
+                        imageVector = item.icon,
+                        contentDescription = item.label,
+                        tint = if (currentRoute == item.route) MaterialTheme.colorScheme.primary else Color.Gray
+                    )
+                },
+                label = { Text(item.label) }
+            )
+        }
     }
 }
+
+@Composable
+fun currentRoute(navController: NavController): String? {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    return navBackStackEntry?.destination?.route
+}
+
+data class BottomNavItem(val route: String, val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector)

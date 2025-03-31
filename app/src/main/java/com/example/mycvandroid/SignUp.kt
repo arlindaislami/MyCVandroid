@@ -1,22 +1,16 @@
 import android.widget.Toast
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,27 +30,27 @@ fun SignUpScreen(navController: NavController) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Sign Up", fontSize = 24.sp, style = MaterialTheme.typography.headlineLarge)
-
+        Text("Sign Up", fontSize = 22.sp, style = MaterialTheme.typography.headlineMedium)
         Spacer(modifier = Modifier.height(20.dp))
 
-        TextField(
+        OutlinedTextField(
             value = email,
             onValueChange = { email = it },
             label = { Text("Email") },
+            leadingIcon = { Icon(Icons.Filled.Email, contentDescription = "Email Icon") },
             modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        TextField(
+        OutlinedTextField(
             value = password,
             onValueChange = { password = it },
             label = { Text("Password") },
-            modifier = Modifier.fillMaxWidth(),
-            visualTransformation = PasswordVisualTransformation()
+            leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = "Password Icon") },
+            visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth()
         )
-
         Spacer(modifier = Modifier.height(20.dp))
 
         Button(
@@ -66,15 +60,33 @@ fun SignUpScreen(navController: NavController) {
                         if (task.isSuccessful) {
                             navController.navigate("home")
                         } else {
-                            Toast.makeText(navController.context, "Sign Up Error", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                navController.context,
+                                "Sign Up Error",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
             },
-            modifier = Modifier.fillMaxWidth(0.6f)
+            modifier = Modifier
+                .fillMaxWidth(0.6f)
+                .height(50.dp)
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(Color(0xFFE53935), Color(0xFF1E88E5))
+                    ),
+                    shape = RoundedCornerShape(50)
+                ),
+            shape = RoundedCornerShape(50),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
         ) {
-            Text(text = "Sign Up")
+            Text("Sign Up", color = Color.White)
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        TextButton(onClick = { navController.navigate("login") }) {
+            Text("Have an account? Log In", color = MaterialTheme.colorScheme.primary)
         }
     }
 }
-
-

@@ -4,12 +4,17 @@ import Home
 import LoginScreen
 import SignUpScreen
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -50,33 +55,60 @@ fun MainScreen(navController: NavController) {
 
         Text(
             text = "MY CV",
-            fontSize = 30.sp,
-            style = MaterialTheme.typography.headlineLarge
+            fontSize = 32.sp,
+            style = MaterialTheme.typography.headlineLarge,
+            color = Color(0xFF1E88E5)
         )
 
         Spacer(modifier = Modifier.height(10.dp))
 
         Text(
-            text = "Një aplikacion për të krijuar dhe menaxhuar CV-në tënde në mënyrë të lehtë.",
-            fontSize = 16.sp
+            text = "Create and manage your CV easily with our app.",
+            fontSize = 18.sp,
+            style = MaterialTheme.typography.bodyLarge,
+            color = Color.Gray,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 20.dp)
         )
 
         Spacer(modifier = Modifier.height(30.dp))
 
         Button(
             onClick = { navController.navigate("login") },
-            modifier = Modifier.fillMaxWidth(0.6f)
+            modifier = Modifier
+                .fillMaxWidth(0.6f)
+                .height(50.dp)
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(Color(0xFFE53935), Color(0xFF1E88E5))
+                    ),
+                    shape = RoundedCornerShape(50)
+                ),
+            shape = RoundedCornerShape(50),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
         ) {
-            Text(text = "Log In")
+            Text("Log In", color = Color.White)
         }
 
         Spacer(modifier = Modifier.height(10.dp))
 
         Button(
             onClick = { navController.navigate("signup") },
-            modifier = Modifier.fillMaxWidth(0.6f)
+            modifier = Modifier
+                .fillMaxWidth(0.6f)
+                .height(50.dp)
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(Color(0xFFE53935), Color(0xFF1E88E5))
+                    ),
+                    shape = RoundedCornerShape(50)
+                ),
+            shape = RoundedCornerShape(50),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
         ) {
-            Text(text = "Sign Up")
+            Text("Sign Up", color = Color.White)
         }
+
     }
-}
+    }
+
