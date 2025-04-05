@@ -1,3 +1,5 @@
+package com.example.mycvandroid
+
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -16,12 +18,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
 
 @Composable
 fun SignUpScreen(navController: NavController) {
     val auth = FirebaseAuth.getInstance()
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -32,6 +37,15 @@ fun SignUpScreen(navController: NavController) {
     ) {
         Text("Sign Up", fontSize = 22.sp, style = MaterialTheme.typography.headlineMedium)
         Spacer(modifier = Modifier.height(20.dp))
+
+        OutlinedTextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("Full Name") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
 
         OutlinedTextField(
             value = email,
@@ -51,6 +65,7 @@ fun SignUpScreen(navController: NavController) {
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth()
         )
+
         Spacer(modifier = Modifier.height(20.dp))
 
         Button(
@@ -58,7 +73,29 @@ fun SignUpScreen(navController: NavController) {
                 auth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
-                            navController.navigate("home")
+                            val user = auth.currentUser
+                            user?.let {
+                                val uid = it.uid
+                                val database = Firebase.database
+                                val userRef = database.getReference("users").child(uid)
+
+                                val userData = mapOf(
+                                    "name" to name,
+                                    "email" to email
+                                )
+
+                                userRef.setValue(userData).addOnCompleteListener { dbTask ->
+                                    if (dbTask.isSuccessful) {
+                                        navController.navigate("home")
+                                    } else {
+                                        Toast.makeText(
+                                            navController.context,
+                                            "Database Error",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                            }
                         } else {
                             Toast.makeText(
                                 navController.context,

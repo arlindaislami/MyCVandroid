@@ -1,3 +1,6 @@
+package com.example.mycvandroid
+
+import ProfileScreen
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -5,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
 import androidx.navigation.compose.*
 
@@ -34,7 +38,8 @@ fun TopAppBar(navController: NavController) {
         title = { Text("My CV") },
         actions = {
             IconButton(onClick = {
-                navController.navigate("login") {
+                com.google.firebase.auth.FirebaseAuth.getInstance().signOut()
+                navController.navigate("main") {
                     popUpTo("home") { inclusive = true }
                 }
             }) {
@@ -76,4 +81,4 @@ fun currentRoute(navController: NavController): String? {
     return navBackStackEntry?.destination?.route
 }
 
-data class BottomNavItem(val route: String, val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector)
+data class BottomNavItem(val route: String, val label: String, val icon: ImageVector)

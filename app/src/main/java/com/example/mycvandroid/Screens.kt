@@ -1,8 +1,5 @@
 package com.example.mycvandroid
 
-import Home
-import LoginScreen
-import SignUpScreen
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -38,77 +35,91 @@ fun AppNavigator() {
 
 @Composable
 fun MainScreen(navController: NavController) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.user_logo),
-            contentDescription = "Logo User",
-            modifier = Modifier
-                .size(80.dp)
-                .padding(bottom = 16.dp)
-        )
+    val auth = remember { com.google.firebase.auth.FirebaseAuth.getInstance() }
+    val currentUser = auth.currentUser
 
-        Text(
-            text = "MY CV",
-            fontSize = 32.sp,
-            style = MaterialTheme.typography.headlineLarge,
-            color = Color(0xFF1E88E5)
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Text(
-            text = "Create and manage your CV easily with our app.",
-            fontSize = 18.sp,
-            style = MaterialTheme.typography.bodyLarge,
-            color = Color.Gray,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 20.dp)
-        )
-
-        Spacer(modifier = Modifier.height(30.dp))
-
-        Button(
-            onClick = { navController.navigate("login") },
-            modifier = Modifier
-                .fillMaxWidth(0.6f)
-                .height(50.dp)
-                .background(
-                    brush = Brush.horizontalGradient(
-                        colors = listOf(Color(0xFFE53935), Color(0xFF1E88E5))
-                    ),
-                    shape = RoundedCornerShape(50)
-                ),
-            shape = RoundedCornerShape(50),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
-        ) {
-            Text("Log In", color = Color.White)
+    // Nese useri osht i kyq, menjehere e dergon ne home
+    LaunchedEffect(currentUser) {
+        if (currentUser != null) {
+            navController.navigate("home") {
+                popUpTo("main") { inclusive = true }
+            }
         }
+    }
 
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Button(
-            onClick = { navController.navigate("signup") },
+    // Kjo pjesë egzekutohet VETËM nëse useri nuk është i kyçur
+    if (currentUser == null) {
+        Column(
             modifier = Modifier
-                .fillMaxWidth(0.6f)
-                .height(50.dp)
-                .background(
-                    brush = Brush.horizontalGradient(
-                        colors = listOf(Color(0xFFE53935), Color(0xFF1E88E5))
-                    ),
-                    shape = RoundedCornerShape(50)
-                ),
-            shape = RoundedCornerShape(50),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+                .fillMaxSize()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Sign Up", color = Color.White)
-        }
+            Image(
+                painter = painterResource(id = R.drawable.user_logo),
+                contentDescription = "Logo User",
+                modifier = Modifier
+                    .size(80.dp)
+                    .padding(bottom = 16.dp)
+            )
 
+            Text(
+                text = "MY CV",
+                fontSize = 32.sp,
+                style = MaterialTheme.typography.headlineLarge,
+                color = Color(0xFF1E88E5)
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Text(
+                text = "Create and manage your CV easily with our app.",
+                fontSize = 18.sp,
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.Gray,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 20.dp)
+            )
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            Button(
+                onClick = { navController.navigate("login") },
+                modifier = Modifier
+                    .fillMaxWidth(0.6f)
+                    .height(50.dp)
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(Color(0xFFE53935), Color(0xFF1E88E5))
+                        ),
+                        shape = RoundedCornerShape(50)
+                    ),
+                shape = RoundedCornerShape(50),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+            ) {
+                Text("Log In", color = Color.White)
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Button(
+                onClick = { navController.navigate("signup") },
+                modifier = Modifier
+                    .fillMaxWidth(0.6f)
+                    .height(50.dp)
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(Color(0xFFE53935), Color(0xFF1E88E5))
+                        ),
+                        shape = RoundedCornerShape(50)
+                    ),
+                shape = RoundedCornerShape(50),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+            ) {
+                Text("Sign Up", color = Color.White)
+            }
+        }
     }
-    }
+}
 
