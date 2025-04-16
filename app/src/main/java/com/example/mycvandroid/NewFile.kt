@@ -1,6 +1,7 @@
 package com.example.mycvandroid
 
 import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -19,6 +20,8 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
+import java.util.Calendar
+import java.util.Locale
 
 data class EduData(
     var eduName: String = "",
@@ -255,8 +258,8 @@ fun NewFileScreen() {
             val edu = eduState.value
             FormField("Education Name", edu.eduName) { eduState.value = edu.copy(eduName = it) }
             FormField("Description", edu.description) { eduState.value = edu.copy(description = it) }
-            FormField("Start Date", edu.startDate) { eduState.value = edu.copy(startDate = it) }
-            FormField("End Date", edu.endDate) { eduState.value = edu.copy(endDate = it) }
+            DatePickerField("Start Date", edu.startDate) { eduState.value = edu.copy(startDate = it) }
+            DatePickerField("End Date", edu.endDate) { eduState.value = edu.copy(endDate = it) }
             Spacer(modifier = Modifier.height(8.dp))
         }
         TextButton(onClick = { educationList.add(mutableStateOf(EduData())) }) {
@@ -270,8 +273,8 @@ fun NewFileScreen() {
             val exp = expState.value
             FormField("Experience Name", exp.expName) { expState.value = exp.copy(expName = it) }
             FormField("Description", exp.description) { expState.value = exp.copy(description = it) }
-            FormField("Start Date", exp.startDate) { expState.value = exp.copy(startDate = it) }
-            FormField("End Date", exp.endDate) { expState.value = exp.copy(endDate = it) }
+            DatePickerField("Start Date", exp.startDate) { expState.value = exp.copy(startDate = it) }
+            DatePickerField("End Date", exp.endDate) { expState.value = exp.copy(endDate = it) }
             Spacer(modifier = Modifier.height(8.dp))
         }
         TextButton(onClick = { experienceList.add(mutableStateOf(ExpData())) }) {
@@ -285,8 +288,8 @@ fun NewFileScreen() {
             val training = trainState.value
             FormField("Training Name", training.trainingName) { trainState.value = training.copy(trainingName = it) }
             FormField("Description", training.description) { trainState.value = training.copy(description = it) }
-            FormField("Start Date", training.startDate) { trainState.value = training.copy(startDate = it) }
-            FormField("End Date", training.endDate) { trainState.value = training.copy(endDate = it) }
+            DatePickerField("Start Date", training.startDate) { trainState.value = training.copy(startDate = it) }
+            DatePickerField("End Date", training.endDate) { trainState.value = training.copy(endDate = it) }
             Spacer(modifier = Modifier.height(8.dp))
         }
         TextButton(onClick = { trainingList.add(mutableStateOf(TrainingData())) }) {
@@ -357,3 +360,63 @@ fun SectionHeader(title: String) {
         )
     }
 }
+
+@Composable
+fun DatePickerField(label: String, date: String, onDateSelected: (String) -> Unit) {
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance()
+    val formatter = remember { java.text.SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
+
+    val year: Int
+    val month: Int
+    val day: Int
+
+    if (date.isNotEmpty()) {
+        val parts = date.split("/")
+        day = parts.getOrNull(0)?.toIntOrNull() ?: calendar.get(Calendar.DAY_OF_MONTH)
+        month = (parts.getOrNull(1)?.toIntOrNull()?.minus(1)) ?: calendar.get(Calendar.MONTH)
+        year = parts.getOrNull(2)?.toIntOrNull() ?: calendar.get(Calendar.YEAR)
+    } else {
+        year = calendar.get(Calendar.YEAR)
+        month = calendar.get(Calendar.MONTH)
+        day = calendar.get(Calendar.DAY_OF_MONTH)
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp)
+            .clickable {
+                val datePickerDialog = android.app.DatePickerDialog(
+                    context,
+                    { _, selectedYear, selectedMonth, selectedDay ->
+                        val pickedDate = Calendar.getInstance().apply {
+                            set(selectedYear, selectedMonth, selectedDay)
+                        }
+                        onDateSelected(formatter.format(pickedDate.time))
+                    },
+                    year,
+                    month,
+                    day
+                )
+                datePickerDialog.show()
+            }
+    ) {
+        OutlinedTextField(
+            value = date,
+            onValueChange = {},
+            label = { Text(label) },
+            readOnly = true,
+            enabled = false, // e bllokon inputin manual, por e le pamjen standard
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                disabledTextColor = Color.Black,
+                disabledBorderColor = Color.Gray,
+                disabledLabelColor = Color(0xFF00796B),
+                disabledTrailingIconColor = Color.Gray
+            ),
+            shape = RoundedCornerShape(12.dp)
+        )
+    }
+}
+
