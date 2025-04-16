@@ -46,7 +46,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 
 @Composable
-fun MyFilesScreen(navController: NavController) {
+fun MyFilesScreen(navController: NavController, tabNavController: NavController) {
     val auth = FirebaseAuth.getInstance()
     val uid = auth.currentUser?.uid
     var userName by remember { mutableStateOf("Username") }
@@ -155,21 +155,21 @@ fun MyFilesScreen(navController: NavController) {
             horizontalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             FileCardWithText(
-                title = "Create File",
+                title = "Create New CV",
                 backgroundColor = Color(0xFFF7F3FF),
                 showIcon = true,
-                onClick = { navController.navigate("newfile") }
+                onClick = { tabNavController.navigate("newfile") }
             )
 
             FileCardWithText(
-                title = "CV 1",
+                title = "Preview 1",
                 backgroundColor = Color(0xFFF0F0F0),
                 showIcon = false,
-                onClick = {}
+                onClick = {navController.navigate("cv_preview")}
             )
 
             FileCardWithText(
-                title = "CV 2",
+                title = "Preview 2",
                 backgroundColor = Color(0xFFDFF5F3),
                 showIcon = false,
                 onClick = { /* Nav te CV 2 nëse e implementon */ }

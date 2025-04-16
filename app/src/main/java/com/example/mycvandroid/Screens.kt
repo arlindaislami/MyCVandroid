@@ -20,7 +20,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 
 
-
 @Composable
 fun AppNavigator() {
     val navController = rememberNavController()
@@ -30,6 +29,7 @@ fun AppNavigator() {
         composable("login") { LoginScreen(navController) }
         composable("signup") { SignUpScreen(navController) }
         composable("home") { Home(navController) }
+        composable ( "cv_preview"){ CVPreviewScreen(navController) }
     }
 }
 
@@ -38,7 +38,7 @@ fun MainScreen(navController: NavController) {
     val auth = remember { com.google.firebase.auth.FirebaseAuth.getInstance() }
     val currentUser = auth.currentUser
 
-    // Nese useri osht i kyq, menjehere e dergon ne home
+
     LaunchedEffect(currentUser) {
         if (currentUser != null) {
             navController.navigate("home") {
@@ -47,7 +47,7 @@ fun MainScreen(navController: NavController) {
         }
     }
 
-    // Kjo pjesë egzekutohet VETËM nëse useri nuk është i kyçur
+
     if (currentUser == null) {
         Column(
             modifier = Modifier

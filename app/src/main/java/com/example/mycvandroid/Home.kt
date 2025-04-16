@@ -38,7 +38,7 @@ fun Home(navController: NavController) {
             startDestination = "myfiles",
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable("myfiles") { MyFilesScreen() }
+            composable("myfiles") { MyFilesScreen(navController = navController, tabNavController = tabNavController  ) }
             composable("newfile") { NewFileScreen() }
             composable("profile") { ProfileScreen() }
         }
