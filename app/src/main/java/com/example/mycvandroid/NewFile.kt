@@ -20,36 +20,35 @@ import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import java.util.Calendar
 import java.util.Locale
 
-data class EduData(
-    var eduName: String = "",
-    var description: String = "",
-    var startDate: String = "",
-    var endDate: String = ""
-)
-
-data class ExpData(
-    var expName: String = "",
-    var description: String = "",
-    var startDate: String = "",
-    var endDate: String = ""
-)
-
-data class TrainingData(
-    var trainingName: String = "",
-    var description: String = "",
-    var startDate: String = "",
-    var endDate: String = ""
-)
-
-data class SkillData(
-    var name: String = ""
-)
+data class EduData(var eduName: String = "", var description: String = "", var startDate: String = "", var endDate: String = "")
+data class ExpData(var expName: String = "", var description: String = "", var startDate: String = "", var endDate: String = "")
+data class TrainingData(var trainingName: String = "", var description: String = "", var startDate: String = "", var endDate: String = "")
+data class SkillData(var name: String = "")
 
 @Composable
 fun NewFileScreen() {
+    val context = LocalContext.current
+    val scrollState = rememberScrollState()
+    val coroutineScope = rememberCoroutineScope()
+    val auth = FirebaseAuth.getInstance()
+    val userId = auth.currentUser?.uid
+    val database: DatabaseReference = Firebase.database.reference
+
+    if (userId == null) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("Please sign in to save your CV!", color = Color.Red, fontSize = 18.sp)
+        }
+        return
+    }
+
     var fullname by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var phonenumber by remember { mutableStateOf("") }
@@ -59,267 +58,167 @@ fun NewFileScreen() {
     val trainingList = remember { mutableStateListOf(mutableStateOf(TrainingData())) }
     val skillsList = remember { mutableStateListOf(mutableStateOf(SkillData())) }
 
-    val database: DatabaseReference = Firebase.database.reference
-    val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-
-    val auth = FirebaseAuth.getInstance()
-    val userId = auth.currentUser?.uid
-
-    if (userId == null) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text("Please sign in to save your CV!", color = Color.Red, fontSize = 18.sp)
-        }
-        return
-    }
-
     LaunchedEffect(userId) {
-        Firebase.database.reference
-            .child("users")
-            .child(userId)
-            .child("cvdata")
-            .get()
-            .addOnSuccessListener { dataSnapshot ->
-                dataSnapshot.child("personalinfo").let { personalInfo ->
-                    fullname = personalInfo.child("fullname").getValue(String::class.java) ?: ""
-                    email = personalInfo.child("email").getValue(String::class.java) ?: ""
-                    phonenumber = personalInfo.child("phonenumber").getValue(String::class.java) ?: ""
-                }
-
-                dataSnapshot.child("education").children.forEach { eduSnap ->
-                    val edu = EduData(
-                        eduName = eduSnap.child("eduName").getValue(String::class.java) ?: "",
-                        description = eduSnap.child("description").getValue(String::class.java) ?: "",
-                        startDate = eduSnap.child("startdate").getValue(String::class.java) ?: "",
-                        endDate = eduSnap.child("enddate").getValue(String::class.java) ?: ""
-                    )
-                    educationList.add(mutableStateOf(edu))
-                }
-
-                dataSnapshot.child("experience").children.forEach { expSnap ->
-                    val exp = ExpData(
-                        expName = expSnap.child("expName").getValue(String::class.java) ?: "",
-                        description = expSnap.child("description").getValue(String::class.java) ?: "",
-                        startDate = expSnap.child("startdate").getValue(String::class.java) ?: "",
-                        endDate = expSnap.child("enddate").getValue(String::class.java) ?: ""
-                    )
-                    experienceList.add(mutableStateOf(exp))
-                }
-
-                dataSnapshot.child("trainings").children.forEach { trainSnap ->
-                    val training = TrainingData(
-                        trainingName = trainSnap.child("trainingName").getValue(String::class.java) ?: "",
-                        description = trainSnap.child("description").getValue(String::class.java) ?: "",
-                        startDate = trainSnap.child("startdate").getValue(String::class.java) ?: "",
-                        endDate = trainSnap.child("enddate").getValue(String::class.java) ?: ""
-                    )
-                    trainingList.add(mutableStateOf(training))
-                }
-
-                dataSnapshot.child("skills").children.forEach { skillSnap ->
-                    val skill = skillSnap.child("name").getValue(String::class.java) ?: ""
-                    skillsList.add(mutableStateOf(SkillData(name = skill)))
-                }
+        database.child("users/$userId/cvdata").get().addOnSuccessListener { dataSnapshot ->
+            dataSnapshot.child("personalinfo").let {
+                fullname = it.child("fullname").getValue(String::class.java) ?: ""
+                email = it.child("email").getValue(String::class.java) ?: ""
+                phonenumber = it.child("phonenumber").getValue(String::class.java) ?: ""
             }
-    }
 
+            fun <T> clearAndFill(list: SnapshotStateList<MutableState<T>>, newItems: List<T>) {
+                list.clear()
+                list.addAll(newItems.map { mutableStateOf(it) })
+            }
+
+            clearAndFill(educationList, dataSnapshot.child("education").children.mapNotNull {
+                it.getValue(EduData::class.java)
+            })
+
+            clearAndFill(experienceList, dataSnapshot.child("experience").children.mapNotNull {
+                it.getValue(ExpData::class.java)
+            })
+
+            clearAndFill(trainingList, dataSnapshot.child("trainings").children.mapNotNull {
+                it.getValue(TrainingData::class.java)
+            })
+
+            clearAndFill(skillsList, dataSnapshot.child("skills").children.mapNotNull {
+                it.child("name").getValue(String::class.java)?.let { name -> SkillData(name) }
+            })
+        }
+    }
 
     fun saveCVData() {
-        // Verifikojmë nëse të gjitha fushat janë bosh
-        val isPersonalInfoEmpty = fullname.isBlank() && email.isBlank() && phonenumber.isBlank()
-        val isEducationEmpty = educationList.all {
-            it.value.eduName.isBlank() &&
-                    it.value.description.isBlank() &&
-                    it.value.startDate.isBlank() &&
-                    it.value.endDate.isBlank()
-        }
-        val isExperienceEmpty = experienceList.all {
-            it.value.expName.isBlank() &&
-                    it.value.description.isBlank() &&
-                    it.value.startDate.isBlank() &&
-                    it.value.endDate.isBlank()
-        }
-        val isTrainingEmpty = trainingList.all {
-            it.value.trainingName.isBlank() &&
-                    it.value.description.isBlank() &&
-                    it.value.startDate.isBlank() &&
-                    it.value.endDate.isBlank()
-        }
-        val isSkillsEmpty = skillsList.all {
-            it.value.name.isBlank()
-        }
+        val isAllEmpty = fullname.isBlank() && email.isBlank() && phonenumber.isBlank() &&
+                educationList.all { it.value.eduName.isBlank() && it.value.description.isBlank() && it.value.startDate.isBlank() && it.value.endDate.isBlank() } &&
+                experienceList.all { it.value.expName.isBlank() && it.value.description.isBlank() && it.value.startDate.isBlank() && it.value.endDate.isBlank() } &&
+                trainingList.all { it.value.trainingName.isBlank() && it.value.description.isBlank() && it.value.startDate.isBlank() && it.value.endDate.isBlank() } &&
+                skillsList.all { it.value.name.isBlank() }
 
-        val allEmpty = isPersonalInfoEmpty && isEducationEmpty && isExperienceEmpty && isTrainingEmpty && isSkillsEmpty
-
-        if (allEmpty) {
+        if (isAllEmpty) {
             Toast.makeText(context, "Please fill at least one section before saving.", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val educationMap = hashMapOf<String, Any>()
-        educationList.forEachIndexed { index, state ->
-            val edu = state.value
-            if (edu.eduName.isNotBlank() || edu.description.isNotBlank() || edu.startDate.isNotBlank() || edu.endDate.isNotBlank()) {
-                educationMap["edu${index + 1}"] = mapOf(
-                    "eduName" to edu.eduName,
-                    "description" to edu.description,
-                    "startdate" to edu.startDate,
-                    "enddate" to edu.endDate
-                )
-            }
+        val cvData = mutableMapOf<String, Any>()
+
+        if (fullname.isNotBlank() || email.isNotBlank() || phonenumber.isNotBlank()) {
+            cvData["personalinfo"] = mapOf(
+                "fullname" to fullname,
+                "email" to email,
+                "phonenumber" to phonenumber
+            )
         }
 
-        val experienceMap = hashMapOf<String, Any>()
-        experienceList.forEachIndexed { index, state ->
-            val exp = state.value
-            if (exp.expName.isNotBlank() || exp.description.isNotBlank() || exp.startDate.isNotBlank() || exp.endDate.isNotBlank()) {
-                experienceMap["exp${index + 1}"] = mapOf(
-                    "expName" to exp.expName,
-                    "description" to exp.description,
-                    "startdate" to exp.startDate,
-                    "enddate" to exp.endDate
-                )
-            }
+        fun <T> buildListMap(list: SnapshotStateList<MutableState<T>>, keyPrefix: String, builder: (T) -> Map<String, String>): Map<String, Any> {
+            return list.mapIndexedNotNull { index, item ->
+                val data = builder(item.value)
+                if (data.values.any { it.isNotBlank() }) "$keyPrefix${index + 1}" to data else null
+            }.toMap()
         }
 
-        val trainingMap = hashMapOf<String, Any>()
-        trainingList.forEachIndexed { index, state ->
-            val training = state.value
-            if (training.trainingName.isNotBlank() || training.description.isNotBlank() || training.startDate.isNotBlank() || training.endDate.isNotBlank()) {
-                trainingMap["tra${index + 1}"] = mapOf(
-                    "trainingName" to training.trainingName,
-                    "description" to training.description,
-                    "startdate" to training.startDate,
-                    "enddate" to training.endDate
-                )
-            }
+
+        cvData["education"] = buildListMap(educationList, "edu") {
+            mapOf(
+                "eduName" to it.eduName,
+                "description" to it.description,
+                "startDate" to it.startDate,
+                "endDate" to it.endDate
+            )
         }
 
-        val skillsMap = hashMapOf<String, Any>()
-        skillsList.forEachIndexed { index, state ->
-            if (state.value.name.isNotBlank()) {
-                skillsMap["skills${index + 1}"] = mapOf("name" to state.value.name)
-            }
+        cvData["experience"] = buildListMap(experienceList, "exp") {
+            mapOf(
+                "expName" to it.expName,
+                "description" to it.description,
+                "startDate" to it.startDate,
+                "endDate" to it.endDate
+            )
         }
 
-        val personalInfoMap = hashMapOf<String, String>()
-        if (fullname.isNotBlank()) personalInfoMap["fullname"] = fullname
-        if (email.isNotBlank()) personalInfoMap["email"] = email
-        if (phonenumber.isNotBlank()) personalInfoMap["phonenumber"] = phonenumber
+        cvData["trainings"] = buildListMap(trainingList, "tra") {
+            mapOf(
+                "trainingName" to it.trainingName,
+                "description" to it.description,
+                "startDate" to it.startDate,
+                "endDate" to it.endDate
+            )
+        }
 
-        val cvData = hashMapOf<String, Any>()
-        if (personalInfoMap.isNotEmpty()) cvData["personalinfo"] = personalInfoMap
-        if (educationMap.isNotEmpty()) cvData["education"] = educationMap
-        if (experienceMap.isNotEmpty()) cvData["experience"] = experienceMap
-        if (trainingMap.isNotEmpty()) cvData["trainings"] = trainingMap
-        if (skillsMap.isNotEmpty()) cvData["skills"] = skillsMap
+        cvData["skills"] = buildListMap(skillsList, "skills") {
+            mapOf("name" to it.name)
+        }
 
-        database.child("users").child(userId).child("cvdata").setValue(cvData)
-            .addOnCompleteListener {
-                coroutineScope.launch {
-                    Toast.makeText(context, "CV saved successfully!", Toast.LENGTH_SHORT).show()
-                }
-            }
-            .addOnFailureListener {
-                coroutineScope.launch {
-                    Toast.makeText(context, "Failed to save CV!", Toast.LENGTH_SHORT).show()
-                }
-            }
+        database.child("users/$userId/cvdata").updateChildren(cvData).addOnSuccessListener {
+            Toast.makeText(context, "CV saved successfully!", Toast.LENGTH_SHORT).show()
+        }.addOnFailureListener {
+            Toast.makeText(context, "Failed to save CV!", Toast.LENGTH_SHORT).show()
+        }
     }
 
-
-    val scrollState = rememberScrollState()
-
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(scrollState)
-            .padding(20.dp),
+        modifier = Modifier.fillMaxSize().verticalScroll(scrollState).padding(20.dp),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(20.dp))
+        Text("Create New CV", fontSize = 20.sp, color = Color.Black)
 
-        SectionHeader("Personal Information")
+        Spacer(modifier = Modifier.height(16.dp))
+        SectionHeader("Personal Info")
         FormField("Full Name", fullname) { fullname = it }
         FormField("Email", email) { email = it }
         FormField("Phone Number", phonenumber) { phonenumber = it }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        SectionHeader("Education")
-        educationList.forEach { eduState ->
-            val edu = eduState.value
-            FormField("Education Name", edu.eduName) { eduState.value = edu.copy(eduName = it) }
-            FormField("Description", edu.description) { eduState.value = edu.copy(description = it) }
-            DatePickerField("Start Date", edu.startDate) { eduState.value = edu.copy(startDate = it) }
-            DatePickerField("End Date", edu.endDate) { eduState.value = edu.copy(endDate = it) }
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-        TextButton(onClick = { educationList.add(mutableStateOf(EduData())) }) {
-            Text("➕ Add more education", color = Color(0xFF00796B))
+        Section("Education", educationList, { EduData() }) { edu, onChange ->
+            FormField("Education Name", edu.eduName) { onChange(edu.copy(eduName = it)) }
+            FormField("Description", edu.description) { onChange(edu.copy(description = it)) }
+            DatePickerField("Start Date", edu.startDate) { onChange(edu.copy(startDate = it)) }
+            DatePickerField("End Date", edu.endDate) { onChange(edu.copy(endDate = it)) }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        SectionHeader("Experience")
-        experienceList.forEach { expState ->
-            val exp = expState.value
-            FormField("Experience Name", exp.expName) { expState.value = exp.copy(expName = it) }
-            FormField("Description", exp.description) { expState.value = exp.copy(description = it) }
-            DatePickerField("Start Date", exp.startDate) { expState.value = exp.copy(startDate = it) }
-            DatePickerField("End Date", exp.endDate) { expState.value = exp.copy(endDate = it) }
-            Spacer(modifier = Modifier.height(8.dp))
+        Section("Experience", experienceList, { ExpData() }) { exp, onChange ->
+            FormField("Experience Name", exp.expName) { onChange(exp.copy(expName = it)) }
+            FormField("Description", exp.description) { onChange(exp.copy(description = it)) }
+            DatePickerField("Start Date", exp.startDate) { onChange(exp.copy(startDate = it)) }
+            DatePickerField("End Date", exp.endDate) { onChange(exp.copy(endDate = it)) }
         }
-        TextButton(onClick = { experienceList.add(mutableStateOf(ExpData())) }) {
-            Text("➕ Add more experience", color = Color(0xFF00796B))
+
+        Section("Trainings", trainingList, { TrainingData() }) { tr, onChange ->
+            FormField("Training Name", tr.trainingName) { onChange(tr.copy(trainingName = it)) }
+            FormField("Description", tr.description) { onChange(tr.copy(description = it)) }
+            DatePickerField("Start Date", tr.startDate) { onChange(tr.copy(startDate = it)) }
+            DatePickerField("End Date", tr.endDate) { onChange(tr.copy(endDate = it)) }
+        }
+
+        Section("Skills", skillsList, { SkillData() }) { skill, onChange ->
+            FormField("Skill", skill.name) { onChange(SkillData(it)) }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        SectionHeader("Trainings")
-        trainingList.forEach { trainState ->
-            val training = trainState.value
-            FormField("Training Name", training.trainingName) { trainState.value = training.copy(trainingName = it) }
-            FormField("Description", training.description) { trainState.value = training.copy(description = it) }
-            DatePickerField("Start Date", training.startDate) { trainState.value = training.copy(startDate = it) }
-            DatePickerField("End Date", training.endDate) { trainState.value = training.copy(endDate = it) }
-            Spacer(modifier = Modifier.height(8.dp))
+        Button(onClick = { saveCVData() }, modifier = Modifier.fillMaxWidth()) {
+            Text("Save CV")
         }
-        TextButton(onClick = { trainingList.add(mutableStateOf(TrainingData())) }) {
-            Text("➕ Add more trainings", color = Color(0xFF00796B))
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        SectionHeader("Skills")
-        skillsList.forEach { skillState ->
-            FormField("Skill Name", skillState.value.name) {
-                skillState.value = SkillData(name = it)
-            }
-        }
-        TextButton(onClick = { skillsList.add(mutableStateOf(SkillData())) }) {
-            Text("➕ Add more skills", color = Color(0xFF00796B))
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = { saveCVData() },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00796B))
-        ) {
-            Text("Save CV", color = Color.White)
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
     }
+}
+
+@Composable
+fun <T> Section(
+    title: String,
+    list: SnapshotStateList<MutableState<T>>,
+    createNew: () -> T,
+    itemContent: @Composable (T, (T) -> Unit) -> Unit
+) {
+    SectionHeader(title)
+    list.forEach { state ->
+        itemContent(state.value) { state.value = it }
+        Spacer(modifier = Modifier.height(8.dp))
+    }
+    TextButton(onClick = { list.add(mutableStateOf(createNew())) }) {
+        Text("➕ Add more $title", color = Color(0xFF00796B))
+    }
+    Spacer(modifier = Modifier.height(16.dp))
 }
 
 @Composable
@@ -328,9 +227,7 @@ fun FormField(label: String, value: String, onChange: (String) -> Unit) {
         value = value,
         onValueChange = onChange,
         label = { Text(label) },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 8.dp),
+        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = Color(0xFF00796B),
             unfocusedBorderColor = Color.Gray,
@@ -343,21 +240,9 @@ fun FormField(label: String, value: String, onChange: (String) -> Unit) {
 
 @Composable
 fun SectionHeader(title: String) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 16.dp, bottom = 8.dp)
-    ) {
-        Text(
-            text = title,
-            fontSize = 18.sp,
-            color = Color(0xFF00796B)
-        )
-        HorizontalDivider(
-            modifier = Modifier.padding(top = 4.dp),
-            thickness = 1.dp,
-            color = Color(0xFF00796B)
-        )
+    Column(modifier = Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 8.dp)) {
+        Text(text = title, fontSize = 18.sp, color = Color(0xFF00796B))
+        HorizontalDivider(modifier = Modifier.padding(top = 4.dp), thickness = 1.dp, color = Color(0xFF00796B))
     }
 }
 
@@ -367,56 +252,36 @@ fun DatePickerField(label: String, date: String, onDateSelected: (String) -> Uni
     val calendar = Calendar.getInstance()
     val formatter = remember { java.text.SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
 
-    val year: Int
-    val month: Int
-    val day: Int
-
-    if (date.isNotEmpty()) {
+    val (day, month, year) = if (date.isNotEmpty()) {
         val parts = date.split("/")
-        day = parts.getOrNull(0)?.toIntOrNull() ?: calendar.get(Calendar.DAY_OF_MONTH)
-        month = (parts.getOrNull(1)?.toIntOrNull()?.minus(1)) ?: calendar.get(Calendar.MONTH)
-        year = parts.getOrNull(2)?.toIntOrNull() ?: calendar.get(Calendar.YEAR)
-    } else {
-        year = calendar.get(Calendar.YEAR)
-        month = calendar.get(Calendar.MONTH)
-        day = calendar.get(Calendar.DAY_OF_MONTH)
-    }
+        Triple(
+            parts.getOrNull(0)?.toIntOrNull() ?: calendar.get(Calendar.DAY_OF_MONTH),
+            parts.getOrNull(1)?.toIntOrNull()?.minus(1) ?: calendar.get(Calendar.MONTH),
+            parts.getOrNull(2)?.toIntOrNull() ?: calendar.get(Calendar.YEAR)
+        )
+    } else Triple(calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.MONTH), calendar.get(Calendar.YEAR))
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 8.dp)
-            .clickable {
-                val datePickerDialog = android.app.DatePickerDialog(
-                    context,
-                    { _, selectedYear, selectedMonth, selectedDay ->
-                        val pickedDate = Calendar.getInstance().apply {
-                            set(selectedYear, selectedMonth, selectedDay)
-                        }
-                        onDateSelected(formatter.format(pickedDate.time))
-                    },
-                    year,
-                    month,
-                    day
-                )
-                datePickerDialog.show()
-            }
-    ) {
+    Box(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp).clickable {
+        val datePicker = android.app.DatePickerDialog(context, { _, y, m, d ->
+            val selectedDate = Calendar.getInstance()
+            selectedDate.set(y, m, d)
+            onDateSelected(formatter.format(selectedDate.time))
+        }, year, month, day)
+        datePicker.show()
+    }) {
         OutlinedTextField(
             value = date,
             onValueChange = {},
-            label = { Text(label) },
             readOnly = true,
-            enabled = false, // e bllokon inputin manual, por e le pamjen standard
+            enabled = false,
+            label = { Text(label) },
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
                 disabledTextColor = Color.Black,
                 disabledBorderColor = Color.Gray,
-                disabledLabelColor = Color(0xFF00796B),
-                disabledTrailingIconColor = Color.Gray
+                disabledLabelColor = Color(0xFF00796B)
             ),
             shape = RoundedCornerShape(12.dp)
         )
     }
 }
-
