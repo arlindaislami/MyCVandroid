@@ -58,8 +58,15 @@ fun NewFileScreen() {
     val trainingList = remember { mutableStateListOf(mutableStateOf(TrainingData())) }
     val skillsList = remember { mutableStateListOf(mutableStateOf(SkillData())) }
 
+    var hasCVData by remember { mutableStateOf(false) }
+    var showResetDialog by remember { mutableStateOf(false) }
+
     LaunchedEffect(userId) {
         database.child("users/$userId/cvdata").get().addOnSuccessListener { dataSnapshot ->
+            if (dataSnapshot.exists()) {
+                hasCVData = true
+            }
+
             dataSnapshot.child("personalinfo").let {
                 fullname = it.child("fullname").getValue(String::class.java) ?: ""
                 email = it.child("email").getValue(String::class.java) ?: ""
@@ -118,7 +125,6 @@ fun NewFileScreen() {
             }.toMap()
         }
 
-
         cvData["education"] = buildListMap(educationList, "edu") {
             mapOf(
                 "eduName" to it.eduName,
@@ -164,6 +170,57 @@ fun NewFileScreen() {
     ) {
         Text("Create New CV", fontSize = 20.sp, color = Color.Black)
 
+        if (hasCVData) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Button(
+                    onClick = { showResetDialog = true },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
+                    modifier = Modifier
+                        .defaultMinSize(minWidth = 1.dp, minHeight = 1.dp)
+                        .height(36.dp)
+                ) {
+                    Text("Reset Data", color = Color.White, fontSize = 12.sp)
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        if (showResetDialog) {
+            AlertDialog(
+                onDismissRequest = { showResetDialog = false },
+                title = { Text("Confirmation") },
+                text = { Text("Do you want to delete your CV data?") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showResetDialog = false
+                        database.child("users/$userId/cvdata").removeValue().addOnSuccessListener {
+                            Toast.makeText(context, "CV data deleted.", Toast.LENGTH_SHORT).show()
+                            fullname = ""
+                            email = ""
+                            phonenumber = ""
+                            educationList.clear(); educationList.add(mutableStateOf(EduData()))
+                            experienceList.clear(); experienceList.add(mutableStateOf(ExpData()))
+                            trainingList.clear(); trainingList.add(mutableStateOf(TrainingData()))
+                            skillsList.clear(); skillsList.add(mutableStateOf(SkillData()))
+                            hasCVData = false
+                        }.addOnFailureListener {
+                            Toast.makeText(context, "Failed to delete CV data.", Toast.LENGTH_SHORT).show()
+                        }
+                    }) {
+                        Text("Yes")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showResetDialog = false }) {
+                        Text("No")
+                    }
+                }
+            )
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
         SectionHeader("Personal Info")
         FormField("Full Name", fullname) { fullname = it }
@@ -202,6 +259,7 @@ fun NewFileScreen() {
         }
     }
 }
+
 
 @Composable
 fun <T> Section(
