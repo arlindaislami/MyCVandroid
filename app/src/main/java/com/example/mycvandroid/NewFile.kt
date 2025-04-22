@@ -51,6 +51,8 @@ fun NewFileScreen() {
     var fullname by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var phonenumber by remember { mutableStateOf("") }
+    var profession by remember { mutableStateOf("") }
+    var profileDescription by remember { mutableStateOf("") }
 
     val educationList = remember { mutableStateListOf(mutableStateOf(EduData())) }
     val experienceList = remember { mutableStateListOf(mutableStateOf(ExpData())) }
@@ -70,6 +72,8 @@ fun NewFileScreen() {
                 fullname = it.child("fullname").getValue(String::class.java) ?: ""
                 email = it.child("email").getValue(String::class.java) ?: ""
                 phonenumber = it.child("phonenumber").getValue(String::class.java) ?: ""
+                profession = it.child("profession").getValue(String::class.java) ?: ""
+                profileDescription = it.child("profileDescription").getValue(String::class.java) ?: ""
             }
 
             fun <T> clearAndFill(list: SnapshotStateList<MutableState<T>>, newItems: List<T>) {
@@ -96,7 +100,7 @@ fun NewFileScreen() {
     }
 
     fun saveCVData() {
-        val isAllEmpty = fullname.isBlank() && email.isBlank() && phonenumber.isBlank() &&
+        val isAllEmpty = fullname.isBlank() && email.isBlank() && phonenumber.isBlank() && profession.isBlank() && profileDescription.isBlank() &&
                 educationList.all { it.value.eduName.isBlank() && it.value.description.isBlank() && it.value.startDate.isBlank() && it.value.endDate.isBlank() } &&
                 experienceList.all { it.value.expName.isBlank() && it.value.description.isBlank() && it.value.startDate.isBlank() && it.value.endDate.isBlank() } &&
                 trainingList.all { it.value.trainingName.isBlank() && it.value.description.isBlank() && it.value.startDate.isBlank() && it.value.endDate.isBlank() } &&
@@ -109,11 +113,13 @@ fun NewFileScreen() {
 
         val cvData = mutableMapOf<String, Any>()
 
-        if (fullname.isNotBlank() || email.isNotBlank() || phonenumber.isNotBlank()) {
+        if (fullname.isNotBlank() || email.isNotBlank() || phonenumber.isNotBlank() || profession.isNotBlank() || profileDescription.isNotBlank()) {
             cvData["personalinfo"] = mapOf(
                 "fullname" to fullname,
                 "email" to email,
-                "phonenumber" to phonenumber
+                "phonenumber" to phonenumber,
+                "profession" to profession,
+                "profileDescription" to profileDescription
             )
         }
 
@@ -200,6 +206,8 @@ fun NewFileScreen() {
                             fullname = ""
                             email = ""
                             phonenumber = ""
+                            profession = ""
+                            profileDescription = ""
                             educationList.clear(); educationList.add(mutableStateOf(EduData()))
                             experienceList.clear(); experienceList.add(mutableStateOf(ExpData()))
                             trainingList.clear(); trainingList.add(mutableStateOf(TrainingData()))
@@ -225,6 +233,8 @@ fun NewFileScreen() {
         FormField("Full Name", fullname) { fullname = it }
         FormField("Email", email) { email = it }
         FormField("Phone Number", phonenumber) { phonenumber = it }
+        FormField("Profession", profession) { profession = it }
+        FormField("Profile Description", profileDescription) { profileDescription = it }
 
         Section("Education", educationList, { EduData() }) { edu, onChange ->
             FormField("Education Name", edu.eduName) { onChange(edu.copy(eduName = it)) }
@@ -265,7 +275,6 @@ fun NewFileScreen() {
         }
     }
 }
-
 
 @Composable
 fun <T> Section(
