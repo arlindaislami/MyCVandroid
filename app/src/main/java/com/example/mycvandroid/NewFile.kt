@@ -51,6 +51,7 @@ fun NewFileScreen() {
     var fullname by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var phonenumber by remember { mutableStateOf("") }
+    var address by remember { mutableStateOf("") }
     var profession by remember { mutableStateOf("") }
     var profileDescription by remember { mutableStateOf("") }
 
@@ -72,6 +73,7 @@ fun NewFileScreen() {
                 fullname = it.child("fullname").getValue(String::class.java) ?: ""
                 email = it.child("email").getValue(String::class.java) ?: ""
                 phonenumber = it.child("phonenumber").getValue(String::class.java) ?: ""
+                address = it.child("address").getValue(String::class.java) ?: ""
                 profession = it.child("profession").getValue(String::class.java) ?: ""
                 profileDescription = it.child("profileDescription").getValue(String::class.java) ?: ""
             }
@@ -113,11 +115,12 @@ fun NewFileScreen() {
 
         val cvData = mutableMapOf<String, Any>()
 
-        if (fullname.isNotBlank() || email.isNotBlank() || phonenumber.isNotBlank() || profession.isNotBlank() || profileDescription.isNotBlank()) {
+        if (fullname.isNotBlank() || email.isNotBlank() || phonenumber.isNotBlank() || address.isNotBlank() || profession.isNotBlank() || profileDescription.isNotBlank()) {
             cvData["personalinfo"] = mapOf(
                 "fullname" to fullname,
                 "email" to email,
                 "phonenumber" to phonenumber,
+                "address" to address,
                 "profession" to profession,
                 "profileDescription" to profileDescription
             )
@@ -233,6 +236,7 @@ fun NewFileScreen() {
         FormField("Full Name", fullname) { fullname = it }
         FormField("Email", email) { email = it }
         FormField("Phone Number", phonenumber) { phonenumber = it }
+        FormField("Address", address) { address = it }
         FormField("Profession", profession) { profession = it }
         FormField("Profile Description", profileDescription) { profileDescription = it }
 
