@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,6 +45,7 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+
 
 @Composable
 fun MyFilesScreen(navController: NavController, tabNavController: NavController) {
@@ -93,7 +95,7 @@ fun MyFilesScreen(navController: NavController, tabNavController: NavController)
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        // User Profile
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -101,7 +103,7 @@ fun MyFilesScreen(navController: NavController, tabNavController: NavController)
             Box(
                 modifier = Modifier
                     .size(64.dp)
-                    .background(Color(0xFF7E6B9B), shape = CircleShape),
+                    .background(Color(0xFFED7161), shape = CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 if (profileImageUrl != null) {
@@ -146,13 +148,13 @@ fun MyFilesScreen(navController: NavController, tabNavController: NavController)
             color = Color(0xFFE0DFF1)
         )
 
-        // SCROLLABLE CARD LIST
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 12.dp)
                 .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(20.dp)
+            horizontalArrangement = Arrangement.spacedBy(15.dp)
         ) {
             FileCardWithText(
                 title = "Create New CV",
@@ -164,7 +166,7 @@ fun MyFilesScreen(navController: NavController, tabNavController: NavController)
             FileCardWithText(
                 title = "Preview 1",
                 backgroundColor = Color(0xFFF0F0F0),
-                showIcon = false,
+                drawableResId = R.drawable.preview1,
                 onClick = {navController.navigate("cv_preview")}
             )
 
@@ -178,10 +180,7 @@ fun MyFilesScreen(navController: NavController, tabNavController: NavController)
 
         Spacer(modifier = Modifier.height(24.dp))
 
-      /*  Button(onClick = { navController.navigate("list")}) {
-            Text("List")
-        }
-*/
+
     }
 }
 
@@ -190,7 +189,8 @@ fun MyFilesScreen(navController: NavController, tabNavController: NavController)
 fun FileCardWithText(
     title: String,
     backgroundColor: Color,
-    showIcon: Boolean,
+    showIcon: Boolean = false,
+    drawableResId: Int? = null,
     onClick: () -> Unit
 ) {
     Column(
@@ -200,6 +200,7 @@ fun FileCardWithText(
         FileCardItem(
             backgroundColor = backgroundColor,
             showIcon = showIcon,
+            drawableResId = drawableResId, // kjo ka munguar
             onClick = onClick
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -215,7 +216,8 @@ fun FileCardWithText(
 @Composable
 fun FileCardItem(
     backgroundColor: Color,
-    showIcon: Boolean,
+    showIcon: Boolean = false,
+    drawableResId: Int? = null,
     onClick: () -> Unit
 ) {
     Box(
@@ -227,13 +229,22 @@ fun FileCardItem(
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        if (showIcon) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "Add Icon",
-                tint = Color(0xFF3A2B5E),
-                modifier = Modifier.size(36.dp)
-            )
+        when {
+            showIcon -> {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add Icon",
+                    tint = Color(0xFF3A2B5E),
+                    modifier = Modifier.size(36.dp)
+                )
+            }
+            drawableResId != null -> {
+                androidx.compose.foundation.Image(
+                    painter = painterResource(id = drawableResId),
+                    contentDescription = "CV Preview Drawable",
+                    modifier = Modifier.size(70.dp)
+                )
+            }
         }
     }
 }

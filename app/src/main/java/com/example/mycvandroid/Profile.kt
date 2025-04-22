@@ -8,6 +8,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.userProfileChangeRequest
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ktx.storage
@@ -29,19 +29,23 @@ import java.util.UUID
 @Composable
 fun ProfileScreen() {
     val auth = FirebaseAuth.getInstance()
-    val userId = auth.currentUser?.uid
     val currentUser = auth.currentUser
+    val userId = currentUser?.uid
     val database = Firebase.database.reference
     val storage = Firebase.storage
 
-    var fullname by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var phonenumber by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf(currentUser?.email ?: "") }
+    var emailVerified by remember { mutableStateOf(currentUser?.isEmailVerified == true) }
     var imageUrl by remember { mutableStateOf("") }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
     var isSaving by remember { mutableStateOf(false) }
     var saveMessage by remember { mutableStateOf("") }
+
+    var fullName by remember { mutableStateOf("") }
+    var phoneNumber by remember { mutableStateOf("") }
+    var userEmailDB by remember { mutableStateOf("") }
+
     val coroutineScope = rememberCoroutineScope()
 
     val imagePicker = rememberLauncherForActivityResult(
@@ -50,17 +54,27 @@ fun ProfileScreen() {
         selectedImageUri = uri
     }
 
-
     LaunchedEffect(userId) {
         userId?.let { uid ->
             try {
                 val snapshot = database.child("users").child(uid).child("cvdata").get().await()
-                snapshot.child("personalinfo").let { personal ->
-                    fullname = personal.child("fullname").getValue(String::class.java) ?: ""
-                    email = personal.child("email").getValue(String::class.java) ?: ""
-                    phonenumber = personal.child("phonenumber").getValue(String::class.java) ?: ""
+                snapshot.child("image").getValue(String::class.java)?.let {
+                    imageUrl = it
                 }
-                imageUrl = snapshot.child("image").getValue(String::class.java) ?: ""
+
+                val personalInfo = snapshot.child("personalinfo")
+                fullName = personalInfo.child("fullname").getValue(String::class.java) ?: ""
+                phoneNumber = personalInfo.child("phonenumber").getValue(String::class.java) ?: ""
+
+                currentUser?.reload()?.await()
+                emailVerified = currentUser?.isEmailVerified == true
+
+                if (emailVerified) {
+                    currentUser?.email?.let { newEmail ->
+                        database.child("users").child(uid).child("email").setValue(newEmail).await()
+                    }
+                }
+
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -72,7 +86,6 @@ fun ProfileScreen() {
         saveMessage = ""
 
         try {
-       
             selectedImageUri?.let { uri ->
                 val fileName = UUID.randomUUID().toString()
                 val imageRef = storage.reference.child("profile_images/$userId/$fileName.jpg")
@@ -85,21 +98,14 @@ fun ProfileScreen() {
                 }
             }
 
-
-            userId?.let { uid ->
-                val personalRef = database.child("users").child(uid).child("cvdata").child("personalinfo")
-                personalRef.child("fullname").setValue(fullname).await()
-                personalRef.child("email").setValue(email).await()
-                personalRef.child("phonenumber").setValue(phonenumber).await()
+            if (email != currentUser?.email) {
+                currentUser?.verifyBeforeUpdateEmail(email)?.await()
+                auth.signOut()
+                saveMessage = "Email updated. Please check your new email and verify it to activate the change.\n(We won't update it in the database until it's verified.)"
+            } else {
+                saveMessage = "Changes saved successfully."
             }
 
-            currentUser?.updateEmail(email)?.await()
-            val profileUpdates = userProfileChangeRequest {
-                displayName = fullname
-            }
-            currentUser?.updateProfile(profileUpdates)?.await()
-
-            saveMessage = "Changes saved successfully"
         } catch (e: Exception) {
             e.printStackTrace()
             saveMessage = "Error saving changes: ${e.localizedMessage}"
@@ -117,7 +123,6 @@ fun ProfileScreen() {
     ) {
         Spacer(modifier = Modifier.height(20.dp))
 
-
         Image(
             painter = rememberAsyncImagePainter(
                 model = selectedImageUri ?: imageUrl.ifEmpty { "https://via.placeholder.com/150" }
@@ -131,9 +136,7 @@ fun ProfileScreen() {
         )
 
         Text(text = "Tap to change photo", fontSize = 12.sp)
-
         Spacer(modifier = Modifier.height(8.dp))
-
 
         if (selectedImageUri != null) {
             Button(
@@ -170,31 +173,18 @@ fun ProfileScreen() {
         }
 
         Text(text = "Profile", fontSize = 24.sp)
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-        TextField(
-            value = fullname,
-            onValueChange = { fullname = it },
-            label = { Text("Name") },
-            modifier = Modifier.fillMaxWidth()
-        )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        ReadOnlyCardField(label = "Name", value = fullName)
+        ReadOnlyCardField(label = "Phone Number", value = phoneNumber)
 
-        TextField(
+
+        FormFieldProfile(
+            label = "Email",
             value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        TextField(
-            value = phonenumber,
-            onValueChange = { phonenumber = it },
-            label = { Text("Phone Number") },
-            modifier = Modifier.fillMaxWidth()
+            onChange = { email = it },
+            enabled = false
         )
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -205,7 +195,10 @@ fun ProfileScreen() {
                     saveChanges()
                 }
             },
-            enabled = !isSaving
+            enabled = !isSaving,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF58B994),
+                contentColor = Color.White)
         ) {
             Text(text = if (isSaving) "Saving..." else "Save Changes")
         }
@@ -215,4 +208,49 @@ fun ProfileScreen() {
             Text(text = saveMessage)
         }
     }
+}
+@Composable
+fun ReadOnlyCardField(label: String, value: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp)
+            .border(
+                width = 1.dp,
+                color = Color.Gray,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(16.dp)
+    ) {
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            color = Color.Gray
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = value,
+            fontSize = 16.sp,
+            color = Color.Black
+        )
+    }
+}
+
+@Composable
+fun FormFieldProfile(label: String, value: String, onChange: (String) -> Unit, enabled: Boolean) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onChange,
+        label = { Text(label) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = Color(0xFF00796B),
+            unfocusedBorderColor = Color.Gray,
+            focusedLabelColor = Color(0xFF00796B),
+            cursorColor = Color(0xFF00796B)
+        ),
+        shape = RoundedCornerShape(12.dp)
+    )
 }

@@ -60,7 +60,7 @@ fun MainScreen(navController: NavController) {
                 painter = painterResource(id = R.drawable.user_logo),
                 contentDescription = "Logo User",
                 modifier = Modifier
-                    .size(80.dp)
+                    .size(140.dp)
                     .padding(bottom = 16.dp)
             )
 
@@ -68,7 +68,7 @@ fun MainScreen(navController: NavController) {
                 text = "MY CV",
                 fontSize = 32.sp,
                 style = MaterialTheme.typography.headlineLarge,
-                color = Color(0xFF1E88E5)
+                color = Color(0xFFB6693D)
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -91,7 +91,7 @@ fun MainScreen(navController: NavController) {
                     .height(50.dp)
                     .background(
                         brush = Brush.horizontalGradient(
-                            colors = listOf(Color(0xFFE53935), Color(0xFF1E88E5))
+                            colors = listOf(Color(0xFF58B994), Color(0xFF467A9F))
                         ),
                         shape = RoundedCornerShape(50)
                     ),
@@ -110,7 +110,7 @@ fun MainScreen(navController: NavController) {
                     .height(50.dp)
                     .background(
                         brush = Brush.horizontalGradient(
-                            colors = listOf(Color(0xFFE53935), Color(0xFF1E88E5))
+                            colors = listOf(Color(0xFF58B994), Color(0xFF467A9F))
                         ),
                         shape = RoundedCornerShape(50)
                     ),

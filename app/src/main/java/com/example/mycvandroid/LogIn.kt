@@ -148,7 +148,7 @@ fun LoginScreen(navController: NavController) {
                 .height(50.dp)
                 .background(
                     brush = Brush.horizontalGradient(
-                        colors = listOf(Color(0xFFE53935), Color(0xFF1E88E5))
+                        colors = listOf(Color(0xFF758968), Color(0xFF58B994), Color(0xFF467A9F))
                     ),
                     shape = RoundedCornerShape(50)
                 ),

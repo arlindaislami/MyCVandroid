@@ -78,7 +78,7 @@ fun BottomNavigationBar(navController: NavController) {
             .height(100.dp)
     ) {
         Surface(
-            color = Color(0xFFF5F1FB),
+            color = Color(0xFFE9F3EB),
             tonalElevation = 4.dp,
             shape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp),
             modifier = Modifier
@@ -120,7 +120,7 @@ fun BottomNavigationBar(navController: NavController) {
                     FloatingActionButton(
                         onClick = { navController.navigate(items[index].route) },
                         containerColor = Color.White,
-                        contentColor = Color(0xFF8A3FFC),
+                        contentColor = Color(0xFFED7161),
                         shape = CircleShape,
                         elevation = FloatingActionButtonDefaults.elevation(8.dp),
                         modifier = Modifier.size(56.dp)
@@ -146,12 +146,12 @@ fun NavigationIcon(item: BottomNavItem, isSelected: Boolean, onClick: () -> Unit
         Icon(
             imageVector = item.icon,
             contentDescription = item.label,
-            tint = if (isSelected) Color(0xFF8A3FFC) else Color.Gray,
+            tint = if (isSelected) Color(0xFFED7161) else Color.Gray,
             modifier = Modifier.size(24.dp)
         )
         Text(
             text = item.label,
-            color = if (isSelected) Color(0xFF8A3FFC) else Color.Gray,
+            color = if (isSelected) Color(0xFFED7161) else Color.Gray,
             style = MaterialTheme.typography.labelSmall
         )
     }
