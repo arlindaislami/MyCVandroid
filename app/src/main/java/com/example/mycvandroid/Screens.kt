@@ -30,6 +30,7 @@ fun AppNavigator() {
         composable("signup") { SignUpScreen(navController) }
         composable("home") { Home(navController) }
         composable ( "cv_preview"){ CVPreviewScreen(navController) }
+        composable ( "cv_preview2"){ CVPreviewScreen2(navController) }
     }
 }
 

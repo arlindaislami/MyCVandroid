@@ -174,7 +174,7 @@ fun MyFilesScreen(navController: NavController, tabNavController: NavController)
                 title = "Preview 2",
                 backgroundColor = Color(0xFFDFF5F3),
                 showIcon = false,
-                onClick = { /* Nav te CV 2 nëse e implementon */ }
+                onClick = {navController.navigate("cv_preview2")}
             )
         }
 

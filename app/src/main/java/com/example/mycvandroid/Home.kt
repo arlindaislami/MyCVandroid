@@ -125,7 +125,7 @@ fun BottomNavigationBar(navController: NavController) {
                             navController.navigate(item.route)
                         }
                     } else {
-                        Spacer(modifier = Modifier.width(48.dp)) // space for FAB
+                        Spacer(modifier = Modifier.width(48.dp))
                     }
                 }
             }
