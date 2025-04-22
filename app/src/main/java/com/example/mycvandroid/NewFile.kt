@@ -17,7 +17,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
-import kotlinx.coroutines.launch
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -254,7 +253,14 @@ fun NewFileScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(onClick = { saveCVData() }, modifier = Modifier.fillMaxWidth()) {
+        Button(
+            onClick = { saveCVData() },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF58B994),
+                contentColor = Color.White
+            )
+        ) {
             Text("Save CV")
         }
     }
