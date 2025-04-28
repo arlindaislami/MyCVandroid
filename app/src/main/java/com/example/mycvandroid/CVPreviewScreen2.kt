@@ -9,13 +9,17 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -227,49 +231,63 @@ fun CVContent2(
 
         Column(
             modifier = Modifier
-                .width(160.dp)
+                .width(180.dp)
                 .fillMaxHeight()
-                .background(Color(0xFF3E6477))
+                .background(Color(0xFFF5F5F5))
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
             if (photoUrl.isNotEmpty()) {
                 AsyncImage(
                     model = photoUrl,
-                    contentDescription = "Profile Picture",
+                    contentDescription = "Profile Photo",
                     modifier = Modifier
-                        .size(120.dp)
-                        .padding(top = 8.dp)
+                        .size(100.dp)
+                        .background(Color.LightGray, CircleShape)
                 )
             } else {
                 Box(
                     modifier = Modifier
-                        .size(120.dp)
-                        .background(Color.White, shape = CircleShape),
+                        .size(100.dp)
+                        .background(Color(0xFFB3E5FC), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Person,
                         contentDescription = "Default Profile Icon",
-                        tint = Color.Gray,
-                        modifier = Modifier.size(60.dp)
+                        tint = Color(0xFF4E6075),
+                        modifier = Modifier.size(48.dp)
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            Text("CONTACT", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+
+
+            if (profileDescription.isNotBlank()) {
+                Text("PROFILE", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.Black)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(profileDescription, fontSize = 12.sp, color = Color.DarkGray)
+                Spacer(modifier = Modifier.height(20.dp))
+            }
+
+
+            Text("CONTACT", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.Black)
             Spacer(modifier = Modifier.height(8.dp))
-            Text(email, color = Color.White, fontSize = 12.sp)
-            Text(phone, color = Color.White, fontSize = 12.sp)
-            Text(location, color = Color.White, fontSize = 12.sp)
+            InfoItem(Icons.Default.Email, email)
+            InfoItem(Icons.Default.Phone, phone)
+            InfoItem(Icons.Default.LocationOn, location)
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+
 
             if (skills.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(24.dp))
-                Text("Skills", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text("SKILLS", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.Black)
                 Spacer(modifier = Modifier.height(8.dp))
                 skills.forEach {
-                    Text("• ${it.name}", color = Color.White, fontSize = 12.sp)
+                    Text("• ${it.name}", fontSize = 12.sp, color = Color.DarkGray)
                 }
             }
         }
@@ -277,47 +295,84 @@ fun CVContent2(
         Column(
             modifier = Modifier
                 .weight(1f)
-                .background(Color(0xFFF5F5F5))
                 .padding(24.dp)
         ) {
-            Text(name, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = Color(0xFF3E6477))
-            Text(title, fontSize = 16.sp, color = Color.Gray)
+
+            Text(name.uppercase(), fontSize = 26.sp, fontWeight = FontWeight.Bold)
+            Text(title, fontSize = 14.sp, color = Color.Gray)
+
             Spacer(modifier = Modifier.height(16.dp))
 
-            if (profileDescription.isNotEmpty()) {
-                Text("Profile Description", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF3E6477))
-                Text(profileDescription, fontSize = 12.sp)
+
+            if (experience.isNotEmpty()) {
+                SectionTitle("WORK EXPERIENCE")
+                experience.forEach {
+                    SectionItem(it)
+                }
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
+
             if (education.isNotEmpty()) {
-                Text("Education", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF3E6477))
+                SectionTitle("EDUCATION")
                 education.forEach {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(it.title, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
-                    Text(it.content, fontSize = 12.sp)
+                    SectionItem(it)
                 }
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
             if (experience.isNotEmpty()) {
-                Text("Experience", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF3E6477))
+                SectionTitle("EXPerience")
                 experience.forEach {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(it.title, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
-                    Text(it.content, fontSize = 12.sp)
+                    SectionItem(it)
                 }
-                Spacer(modifier = Modifier.height(16.dp))
             }
 
             if (trainings.isNotEmpty()) {
-                Text("Trainings & Certifications", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF3E6477))
+                SectionTitle("TRAININGS")
                 trainings.forEach {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(it.title, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
-                    Text(it.content, fontSize = 12.sp)
+                    SectionItem(it)
                 }
             }
         }
     }
 }
+
+@Composable
+fun SectionTitle(title: String) {
+    Column {
+        Text(
+            title,
+            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp,
+            color = Color.Black,
+            modifier = Modifier
+                .background(Color(0xFFA5B9C2))
+                .padding(vertical = 4.dp, horizontal = 8.dp)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+    }
+}
+
+@Composable
+fun SectionItem(section: SectionData) {
+    Column(modifier = Modifier.padding(bottom = 12.dp)) {
+        Text(section.title, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+        Text(section.content, fontSize = 12.sp, color = Color.DarkGray)
+    }
+}
+
+@Composable
+fun InfoItem(icon: ImageVector, text: String) {
+    if (text.isNotEmpty()) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(vertical = 2.dp)
+        ) {
+            Icon(icon, contentDescription = null, tint = Color.DarkGray, modifier = Modifier.size(16.dp))
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(text, fontSize = 12.sp, color = Color.DarkGray)
+        }
+    }
+}
+
