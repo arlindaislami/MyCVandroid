@@ -173,7 +173,7 @@ fun MyFilesScreen(navController: NavController, tabNavController: NavController)
             FileCardWithText(
                 title = "Preview 2",
                 backgroundColor = Color(0xFFDFF5F3),
-                showIcon = false,
+                drawableResId = R.drawable.preview2,
                 onClick = {navController.navigate("cv_preview2")}
             )
         }

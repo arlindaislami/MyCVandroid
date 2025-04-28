@@ -1,5 +1,6 @@
 package com.example.mycvandroid
 
+import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -15,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
@@ -28,6 +30,8 @@ import java.util.UUID
 
 @Composable
 fun ProfileScreen() {
+    val context = LocalContext.current
+    val sharedPrefs = context.getSharedPreferences("profile_prefs", Context.MODE_PRIVATE)
     val auth = FirebaseAuth.getInstance()
     val currentUser = auth.currentUser
     val userId = currentUser?.uid
@@ -44,7 +48,6 @@ fun ProfileScreen() {
 
     var fullName by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
-    var userEmailDB by remember { mutableStateOf("") }
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -69,10 +72,12 @@ fun ProfileScreen() {
                 currentUser?.reload()?.await()
                 emailVerified = currentUser?.isEmailVerified == true
 
-                if (emailVerified) {
-                    currentUser?.email?.let { newEmail ->
-                        database.child("users").child(uid).child("email").setValue(newEmail).await()
-                    }
+                val pendingEmail = sharedPrefs.getString("pending_email", null)
+                if (emailVerified && pendingEmail != null && pendingEmail != currentUser.email) {
+                    currentUser?.updateEmail(pendingEmail)?.await()
+                    email = pendingEmail
+                    database.child("users").child(uid).child("email").setValue(pendingEmail).await()
+                    sharedPrefs.edit().remove("pending_email").apply()
                 }
 
             } catch (e: Exception) {
@@ -100,15 +105,16 @@ fun ProfileScreen() {
 
             if (email != currentUser?.email) {
                 currentUser?.verifyBeforeUpdateEmail(email)?.await()
+                sharedPrefs.edit().putString("pending_email", email).apply()
                 auth.signOut()
-                saveMessage = "Email updated. Please check your new email and verify it to activate the change.\n(We won't update it in the database until it's verified.)"
+                saveMessage = "A verification link has been sent to your new email. Please verify it and log in again to complete the update."
             } else {
                 saveMessage = "Changes saved successfully."
             }
 
         } catch (e: Exception) {
             e.printStackTrace()
-            saveMessage = "Error saving changes: ${e.localizedMessage}"
+            saveMessage = "An error occurred while saving: ${e.localizedMessage}"
         } finally {
             isSaving = false
         }
@@ -154,7 +160,7 @@ fun ProfileScreen() {
                                     imageUrl = downloadUrl
                                     selectedImageUri = null
                                 }
-                                saveMessage = "Image saved successfully"
+                                saveMessage = "Image saved successfully."
                             }
                         } catch (e: Exception) {
                             e.printStackTrace()
@@ -175,16 +181,14 @@ fun ProfileScreen() {
         Text(text = "Profile", fontSize = 24.sp)
         Spacer(modifier = Modifier.height(20.dp))
 
-
-        ReadOnlyCardField(label = "Name", value = fullName)
+        ReadOnlyCardField(label = "Full Name", value = fullName)
         ReadOnlyCardField(label = "Phone Number", value = phoneNumber)
-
 
         FormFieldProfile(
             label = "Email",
             value = email,
             onChange = { email = it },
-            enabled = false
+            enabled = true
         )
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -198,7 +202,8 @@ fun ProfileScreen() {
             enabled = !isSaving,
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF58B994),
-                contentColor = Color.White)
+                contentColor = Color.White
+            )
         ) {
             Text(text = if (isSaving) "Saving..." else "Save Changes")
         }
@@ -209,30 +214,19 @@ fun ProfileScreen() {
         }
     }
 }
+
 @Composable
 fun ReadOnlyCardField(label: String, value: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 8.dp)
-            .border(
-                width = 1.dp,
-                color = Color.Gray,
-                shape = RoundedCornerShape(12.dp)
-            )
+            .border(1.dp, Color.Gray, RoundedCornerShape(12.dp))
             .padding(16.dp)
     ) {
-        Text(
-            text = label,
-            fontSize = 12.sp,
-            color = Color.Gray
-        )
+        Text(text = label, fontSize = 12.sp, color = Color.Gray)
         Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = value,
-            fontSize = 16.sp,
-            color = Color.Black
-        )
+        Text(text = value, fontSize = 16.sp, color = Color.Black)
     }
 }
 
@@ -242,6 +236,7 @@ fun FormFieldProfile(label: String, value: String, onChange: (String) -> Unit, e
         value = value,
         onValueChange = onChange,
         label = { Text(label) },
+        enabled = enabled,
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 8.dp),
