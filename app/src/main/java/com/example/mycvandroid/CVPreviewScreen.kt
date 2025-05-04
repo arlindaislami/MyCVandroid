@@ -18,7 +18,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -230,114 +232,126 @@ fun CVContent(
 ) {
     Row(modifier = Modifier.fillMaxWidth()) {
 
+
         Column(
             modifier = Modifier
-                .width(160.dp)
+                .width(180.dp)
                 .fillMaxHeight()
                 .background(Color(0xFFB28B72))
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (photoUrl.isNotEmpty()) {
-                AsyncImage(
-                    model = photoUrl,
-                    contentDescription = "Profile Picture",
-                    modifier = Modifier
-                        .size(120.dp)
-                        .padding(top = 8.dp)
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .size(120.dp)
-                        .background(Color.White, shape = CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
+
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .background(Color.White, shape = CircleShape)
+            ) {
+                if (photoUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = photoUrl,
+                        contentDescription = "Profile Picture",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(4.dp)
+                            .clip(CircleShape)
+                    )
+                } else {
                     Icon(
                         imageVector = Icons.Default.Person,
-                        contentDescription = "Default Profile Icon",
-                        tint = Color.LightGray,
-                        modifier = Modifier.size(60.dp)
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(60.dp)
+                            .align(Alignment.Center),
+                        tint = Color.LightGray
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("CONTACT", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color.White)
+            Spacer(modifier = Modifier.height(36.dp))
+
+            Text("Contact", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
             Spacer(modifier = Modifier.height(8.dp))
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Email, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(email, fontSize = 12.sp, color = Color.White)
-            }
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Phone, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(phone, fontSize = 12.sp, color = Color.White)
-            }
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(location, fontSize = 12.sp, color = Color.White)
-            }
+            ContactInfo(Icons.Default.Email, email)
+            ContactInfo(Icons.Default.Phone, phone)
+            ContactInfo(Icons.Default.LocationOn, location)
 
             if (skills.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(24.dp))
-                Text("Skills", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Spacer(modifier = Modifier.height(36.dp))
+                Text("Skills", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
                 Spacer(modifier = Modifier.height(8.dp))
                 skills.forEach {
-                    Text("• ${it.name}", color = Color.White, fontSize = 12.sp)
+                    Text("• ${it.name}", fontSize = 12.sp, color = Color.White)
+                }
+            }
+
+            if (trainings.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(36.dp))
+                Text("Trainings", fontWeight = FontWeight.Bold, color = Color.White, fontSize = 14.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+                trainings.forEach {
+                    Text("• ${it.title}", fontSize = 12.sp, color = Color.White)
                 }
             }
         }
 
+
         Column(
             modifier = Modifier
                 .weight(1f)
-                .background(Color(0xFFF5F5F5))
+                .background(Color.White)
                 .padding(24.dp)
         ) {
-            Text(name, fontSize = 26.sp, fontWeight = FontWeight.Bold)
-            Text(title, fontSize = 16.sp, color = Color.Gray)
-            Spacer(modifier = Modifier.height(16.dp))
+            Text(name, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color(0xFFB28B72))
+            Text(title, fontSize = 14.sp, color = Color.Gray)
+            Spacer(modifier = Modifier.height(14.dp))
 
             if (profileDescription.isNotEmpty()) {
-                Text("Profile Description", fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                Text(profileDescription, fontSize = 12.sp)
+                Text("About Me", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    profileDescription,
+                    fontSize = 12.sp,
+                    color = Color.DarkGray,
+                    modifier = Modifier.fillMaxWidth()
+                )
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
             if (education.isNotEmpty()) {
-                Text("Education", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                SectionHeader("Education")
                 education.forEach {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(it.title, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
-                    Text(it.content, fontSize = 12.sp)
+                    SectionItem(title = it.title, content = it.content)
                 }
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
             if (experience.isNotEmpty()) {
-                Text("Experience", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                SectionHeader("Experience")
                 experience.forEach {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(it.title, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
-                    Text(it.content, fontSize = 12.sp)
+                    SectionItem(title = it.title, content = it.content)
                 }
                 Spacer(modifier = Modifier.height(16.dp))
             }
-
-            if (trainings.isNotEmpty()) {
-                Text("Trainings & Certifications", fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                trainings.forEach {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(it.title, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
-                    Text(it.content, fontSize = 12.sp)
-                }
-            }
         }
     }
+}
+
+
+
+@Composable
+fun ContactInfo(icon: ImageVector, info: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(info, fontSize = 12.sp, color = Color.White)
+    }
+}
+
+
+@Composable
+fun SectionItem(title: String, content: String) {
+    Text(title, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+    Text(content, fontSize = 12.sp)
+    Spacer(modifier = Modifier.height(8.dp))
 }

@@ -32,7 +32,6 @@ data class SkillData(var name: String = "")
 fun NewFileScreen() {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
-    val coroutineScope = rememberCoroutineScope()
     val auth = FirebaseAuth.getInstance()
     val userId = auth.currentUser?.uid
     val database: DatabaseReference = Firebase.database.reference
@@ -190,7 +189,7 @@ fun NewFileScreen() {
                         .defaultMinSize(minWidth = 1.dp, minHeight = 1.dp)
                         .height(36.dp)
                 ) {
-                    Text("Reset Data", color = Color.White, fontSize = 12.sp)
+                    Text("Reset All Data", color = Color.White, fontSize = 12.sp)
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
