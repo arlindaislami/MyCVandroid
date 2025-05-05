@@ -131,7 +131,7 @@ fun BottomNavigationBar(navController: NavController) {
             }
         }
 
-        // Active tab FAB in center
+
         val activeIndex = items.indexOfFirst { it.route == currentRoute }.coerceAtLeast(0)
         Row(
             modifier = Modifier

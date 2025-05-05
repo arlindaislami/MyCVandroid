@@ -120,13 +120,13 @@ fun LoginScreen(navController: NavController) {
 
         Button(
             onClick = {
-                // Email validation
+
                 if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                     emailError = "Email is incorrect"
                     return@Button
                 }
 
-                // Password validation
+
                 if (password.length < 6) {
                     passwordError = "Password is incorrect (at least 6 characters)"
                     return@Button
