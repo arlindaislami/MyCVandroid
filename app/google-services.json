@@ -8,15 +8,15 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:872506606194:android:0daf15e7d2f7ef1600b8eb",
+        "mobilesdk_app_id": "1:872506606194:android:76115c9b8f1c972d00b8eb",
         "android_client_info": {
-          "package_name": "com.ai.mycvandroid"
+          "package_name": "com.arlindai.mycvandroid"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBAH0woOjP6OLf85XOFb9pIymFoWYWrCxk"
+          "current_key": "AIzaSyCuQ98PSayZqBE4X9znpO2wyHNEzwqf5KU"
         }
       ],
       "services": {
@@ -35,7 +35,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBAH0woOjP6OLf85XOFb9pIymFoWYWrCxk"
+          "current_key": "AIzaSyCuQ98PSayZqBE4X9znpO2wyHNEzwqf5KU"
         }
       ],
       "services": {
