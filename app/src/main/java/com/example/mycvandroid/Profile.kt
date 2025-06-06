@@ -212,6 +212,13 @@ fun ProfileScreen() {
             Spacer(modifier = Modifier.height(10.dp))
             Text(text = saveMessage)
         }
+
+        Spacer(modifier = Modifier.height(27.dp))
+        Text(
+            text = "To delete your account, please send a request to: arlindaaislamii@gmail.com",
+            fontSize = 14.sp,
+            color = Color.Red
+        )
     }
 }
 
